@@ -1,0 +1,20 @@
+Command: Question Block
+Hand Gesture: Peace Sign (Index and Middle Fingers Up)
+
+Command: Next Slide
+Hand Gesture: Index Finger Up
+
+Command: Previous Slide
+Hand Gesture: Pinky Finger Up
+
+Command: Play Video
+Hand Gesture: OK Sign (Thumb touching Index, with other fingers up)
+
+Command: Stop Video
+Hand Gesture: Open Palm (All Fingers Up)
+
+Command: Presentation Mode On
+Hand Gesture: Phone Sign (Thumb and Pinky Extended)
+
+Command: Presentation Mode Off
+Hand Gesture: Take the L Sign (Thumb and Index Extended)
