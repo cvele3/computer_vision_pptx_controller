@@ -9,29 +9,24 @@ mp_drawing = mp.solutions.drawing_utils
 # Finger tips for index, middle, ring, pinky
 FINGER_TIPS = [8, 12, 16, 20]
 
-# Helper function to count fingers
 def count_fingers(hand_landmarks):
-    """
-    Count how many fingers are up, including the thumb.
-    """
     finger_count = 0
     finger_states = []
 
-    # Check each finger's state
+    # Check index, middle, ring, pinky
     for tip_index in FINGER_TIPS:
         tip_y = hand_landmarks.landmark[tip_index].y
-        pip_y = hand_landmarks.landmark[tip_index - 2].y  # The landmark just below the tip
-
-        if tip_y < pip_y:  # Finger is up
+        pip_y = hand_landmarks.landmark[tip_index - 2].y
+        if tip_y < pip_y:
             finger_count += 1
             finger_states.append("UP")
-        else:  # Finger is down
+        else:
             finger_states.append("DOWN")
 
-    # Check thumb separately for horizontal extension
+    # Check thumb (horizontal extension)
     thumb_tip_x = hand_landmarks.landmark[4].x
     thumb_base_x = hand_landmarks.landmark[2].x
-    if abs(thumb_tip_x - thumb_base_x) > 0.1:  # Adjust threshold if needed
+    if abs(thumb_tip_x - thumb_base_x) > 0.1:
         finger_count += 1
         finger_states.insert(0, "UP")
     else:
@@ -39,11 +34,7 @@ def count_fingers(hand_landmarks):
 
     return finger_count, finger_states
 
-# Gesture detection function
 def detect_gesture(finger_count, finger_states, frame):
-    """
-    Detect gesture based on finger count and states.
-    """
     if finger_states[0] == "UP" and finger_count == 1:
         gesture = "ENTER_PRESENTATION"
     elif finger_count == 1:
@@ -61,12 +52,10 @@ def detect_gesture(finger_count, finger_states, frame):
     else:
         gesture = "UNKNOWN"
 
-    # Display detected gesture on the frame
     cv2.putText(frame, f"Gesture: {gesture}", (10, 100),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     return gesture
 
-# Map gestures to PowerPoint actions
 def execute_action(action):
     if action == "ENTER_PRESENTATION":
         print("Entering Presentation Mode")
@@ -90,9 +79,11 @@ def execute_action(action):
         print("Exiting Presentation Mode")
         pyautogui.press("esc")
 
-# Main function
 def main():
     cap = cv2.VideoCapture(0)
+
+    # Track the last recognized gesture
+    last_gesture = "UNKNOWN"
 
     with mp_hands.Hands(
         model_complexity=1,
@@ -111,7 +102,6 @@ def main():
 
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    # Draw the hand annotations on the frame
                     mp_drawing.draw_landmarks(
                         frame,
                         hand_landmarks,
@@ -120,27 +110,26 @@ def main():
                         mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2)
                     )
 
-                    # Count fingers and get finger states
                     finger_count, finger_states = count_fingers(hand_landmarks)
-
+                    
                     # Show finger count on the frame
-                    cv2.putText(
-                        frame,
-                        f"Fingers: {finger_count}",
-                        (10, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 255, 0), 2
-                    )
+                    cv2.putText(frame, f"Fingers: {finger_count}",
+                                (10, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                1, (0, 255, 0), 2)
 
-                    # Detect and execute gesture
+                    # Detect gesture
                     gesture = detect_gesture(finger_count, finger_states, frame)
-                    if gesture != "UNKNOWN":
+
+                    # === Only execute if gesture != last_gesture AND != "UNKNOWN" ===
+                    if gesture != "UNKNOWN" and gesture != last_gesture:
                         execute_action(gesture)
+                        last_gesture = gesture
+            else:
+                # If no hand is detected, reset last_gesture
+                last_gesture = "UNKNOWN"
 
-            # Display the live frame
             cv2.imshow("Hand Gesture Control - Press Q to Quit", frame)
-
-            # Exit on 'q'
             if cv2.waitKey(5) & 0xFF == ord('q'):
                 break
 
