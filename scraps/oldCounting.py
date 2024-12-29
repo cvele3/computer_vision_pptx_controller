@@ -1,4 +1,3 @@
-import time
 import cv2
 import mediapipe as mp
 import pyautogui
@@ -83,10 +82,8 @@ def execute_action(action):
 def main():
     cap = cv2.VideoCapture(0)
 
-    # Track the last recognized gesture and time of execution
+    # Track the last recognized gesture
     last_gesture = "UNKNOWN"
-    last_execution_time = 0
-    cooldown_seconds = 2  # 2-second cooldown
 
     with mp_hands.Hands(
         model_complexity=1,
@@ -124,14 +121,13 @@ def main():
                     # Detect gesture
                     gesture = detect_gesture(finger_count, finger_states, frame)
 
-                    # Get the current time
-                    current_time = time.time()
-
-                    # Execute the action only if cooldown has passed
-                    if gesture != "UNKNOWN" and (current_time - last_execution_time > cooldown_seconds):
+                    # === Only execute if gesture != last_gesture AND != "UNKNOWN" ===
+                    if gesture != "UNKNOWN" and gesture != last_gesture:
                         execute_action(gesture)
                         last_gesture = gesture
-                        last_execution_time = current_time
+            else:
+                # If no hand is detected, reset last_gesture
+                last_gesture = "UNKNOWN"
 
             cv2.imshow("Hand Gesture Control - Press Q to Quit", frame)
             if cv2.waitKey(5) & 0xFF == ord('q'):

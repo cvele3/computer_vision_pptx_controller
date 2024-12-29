@@ -1,4 +1,3 @@
-import time
 import cv2
 import mediapipe as mp
 import pyautogui
@@ -97,9 +96,8 @@ def execute_action(action):
 def main():
     cap = cv2.VideoCapture(0)
 
-    # Track the last time a gesture was executed
-    last_execution_time = 0
-    cooldown_seconds = 2  # Minimum time between gestures
+    # Track the last recognized gesture
+    last_gesture = "UNKNOWN"
 
     with mp_hands.Hands(
         model_complexity=1,
@@ -124,18 +122,17 @@ def main():
                     # Detect gesture
                     gesture = detect_gesture(hand_landmarks)
 
-                    # Get the current time
-                    current_time = time.time()
-
-                    # Execute gesture only if cooldown has passed
-                    if current_time - last_execution_time > cooldown_seconds:
-                        if gesture != "UNKNOWN":
-                            execute_action(gesture)
-                            last_execution_time = current_time
-
                     # Display gesture on screen
                     cv2.putText(frame, f"Gesture: {gesture}", (10, 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                    # Execute PowerPoint action if gesture is not repeated
+                    if gesture != "UNKNOWN" and gesture != last_gesture:
+                        execute_action(gesture)
+                        last_gesture = gesture
+            else:
+                # If no hand is detected, reset last_gesture
+                last_gesture = "UNKNOWN"
 
             # Show the live frame
             cv2.imshow("Hand Gesture Control", frame)
