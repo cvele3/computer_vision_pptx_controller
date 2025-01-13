@@ -13,9 +13,9 @@ FINGER_TIPS = [8, 12, 16, 20]
 
 # Define predefined workflows
 WORKFLOWS = [
-    ["ENTER_PRESENTATION", "NEXT_SLIDE", "NEXT_SLIDE", "PREVIOUS_SLIDE", "NEXT_SLIDE", "EXIT_PRESENTATION"],
-    ["ENTER_PRESENTATION", "PLAY_VIDEO", "STOP_VIDEO", "NEXT_SLIDE", "EXIT_PRESENTATION"],
-    ["ENTER_PRESENTATION", "BLANK_SCREEN", "NEXT_SLIDE", "PREVIOUS_SLIDE", "STOP_VIDEO", "EXIT_PRESENTATION"]
+    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PREVIOUS_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PRESENTATION_MODE_OFF"],
+    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PREVIOUS_SLIDE", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE" ,"PRESENTATION_MODE_OFF"],
+    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PREVIOUS_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PRESENTATION_MODE_OFF"]
 ]
 
 # Initialize error log
@@ -54,7 +54,7 @@ def detect_gesture(finger_count, finger_states, frame):
     Detect gestures based on finger count and states.
     """
     if finger_states[0] == "UP" and finger_count == 1:
-        gesture = "ENTER_PRESENTATION"
+        gesture = "PRESENTATION_MODE_ON"
     elif finger_count == 1:
         gesture = "NEXT_SLIDE"
     elif finger_count == 2:
@@ -64,9 +64,9 @@ def detect_gesture(finger_count, finger_states, frame):
     elif finger_count == 4:
         gesture = "STOP_VIDEO"
     elif finger_count == 5:
-        gesture = "BLANK_SCREEN"
+        gesture = "QUESTION_BLOCK"
     elif finger_count == 0:
-        gesture = "EXIT_PRESENTATION"
+        gesture = "PRESENTATION_MODE_OFF"
     else:
         gesture = "UNKNOWN"
 
@@ -78,8 +78,8 @@ def execute_action(action):
     """
     Execute an action based on the detected gesture.
     """
-    if action == "ENTER_PRESENTATION":
-        print("Entering Presentation Mode")
+    if action == "PRESENTATION_MODE_ON":
+        print("Presentation Mode On")
         pyautogui.press("f5")
     elif action == "NEXT_SLIDE":
         print("Next Slide")
@@ -93,11 +93,11 @@ def execute_action(action):
     elif action == "STOP_VIDEO":
         print("Stop Video")
         pyautogui.press("space")
-    elif action == "BLANK_SCREEN":
-        print("Blank Screen")
+    elif action == "QUESTION_BLOCK":
+        print("Question Block (Blank Screen)")
         pyautogui.press("b")
-    elif action == "EXIT_PRESENTATION":
-        print("Exiting Presentation Mode")
+    elif action == "PRESENTATION_MODE_OFF":
+        print("Presentation Mode Off")
         pyautogui.press("esc")
 
 def log_error(step, expected, detected, error_type):
@@ -157,7 +157,7 @@ def process_workflow(workflow):
 
             # Only process gestures every cooldown_seconds
             if current_time - last_execution_time >= cooldown_seconds:
-                if not workflow_started and gesture == "ENTER_PRESENTATION":
+                if not workflow_started and gesture == "PRESENTATION_MODE_ON":
                     start_time = current_time
                     workflow_started = True
 
