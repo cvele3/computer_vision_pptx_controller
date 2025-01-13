@@ -162,7 +162,9 @@ def process_workflow(workflow):
                         step_index += 1
                     else:
                         error_type = "Misclassification" if gesture != "UNKNOWN" else "False Negative"
-                        log_error(step_index + 1, workflow[step_index], gesture, error_type)
+                        if gesture != "UNKNOWN":
+                            log_error(step_index + 1, workflow[step_index], gesture, error_type)
+                        
 
                     last_execution_time = current_time  # Update last execution time
 
