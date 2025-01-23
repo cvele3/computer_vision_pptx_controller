@@ -1,12 +1,24 @@
 import csv
 import uuid
 import openpyxl
+import os
+import psutil
+import time
+import win32com.client
+import pyautogui
 
 import demo_workflow_specific as specific_flow
 import demo_workflows_counting as counting_flow
 
 EXCEL_FILE = "logs/user_performance.xlsx"
 ERROR_LOG_FILE = "logs/error_log.csv"
+
+def close_pptx():
+    """
+    Close the PowerPoint application by terminating its process.
+    """
+    ppt_app = win32com.client.Dispatch("PowerPoint.Application")
+    ppt_app.Quit()
 
 def save_to_excel(user_uuid, results):
     """
@@ -27,7 +39,6 @@ def save_to_excel(user_uuid, results):
     wb.save(EXCEL_FILE)
 
 def main():
-
     random_uuid = uuid.uuid4()
     results = []
 
@@ -36,22 +47,55 @@ def main():
         writer = csv.writer(file)
         writer.writerow(["Timestamp", "Gesture type", "Flow number", "Step", "Detected Gesture", "Expected Gesture"])
 
+    # Process workflows from `specific_flow.WORKFLOWS`
     for i, workflow in enumerate(specific_flow.WORKFLOWS):
+        file_number = i + 1
+        pptx_path = f"C:/Projects/computer_vision_pptx_controller/pptx/WORKFLOW_{file_number}.pptx"
         print(f"Processing workflow {i + 1}/{len(specific_flow.WORKFLOWS)}: {' -> '.join(workflow)}")
+
+        # Open the PowerPoint file
+        os.startfile(pptx_path)
+
+        time.sleep(5)
+
+        pyautogui.click()
+
         try:
+            # Process the workflow
             elapsed_time, error_count = specific_flow.process_workflow(workflow, i + 1)
             results.append((elapsed_time, error_count))
         except Exception as e:
             print(f"Error processing workflow {i + 1}: {e}")
+        finally:
+            # Ensure PowerPoint is fully closed before proceeding to the next iteration
+            close_pptx()
 
+    # Process workflows from `counting_flow.WORKFLOWS`
     for i, workflow in enumerate(counting_flow.WORKFLOWS):
+        file_number = i + 1
+        pptx_path = f"C:/Projects/computer_vision_pptx_controller/pptx/WORKFLOW_{file_number}.pptx"
         print(f"Processing workflow {i + 1}/{len(counting_flow.WORKFLOWS)}: {' -> '.join(workflow)}")
+
+        # Open the PowerPoint file
+        os.startfile(pptx_path)
+
+        time.sleep(5)
+
+        pyautogui.click()
+
         try:
+            # Process the workflow
             elapsed_time, error_count = counting_flow.process_workflow(workflow, i + 1)
             results.append((elapsed_time, error_count))
         except Exception as e:
             print(f"Error processing workflow {i + 1}: {e}")
+        finally:
+            # Ensure PowerPoint is fully closed before proceeding to the next iteration
+            close_pptx()
+
+    # Save results to Excel
     save_to_excel(random_uuid, results)
+
 
 if __name__ == "__main__":
     main()
