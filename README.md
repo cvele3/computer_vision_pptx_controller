@@ -48,9 +48,9 @@ This project allows you to control PowerPoint presentations using hand gestures 
 
 ## Project Structure
 
-- [finger_counting](http://_vscodecontentref_/0): Contains the script for counting fingers and detecting gestures.
-- [logs](http://_vscodecontentref_/1): Contains logs for errors and user performance.
-- [pptx](http://_vscodecontentref_/2): Contains PowerPoint files used in the workflows.
-- [scraps](http://_vscodecontentref_/3): Contains old and experimental scripts.
-- [specific_gestures](http://_vscodecontentref_/4): Contains scripts and data for specific gestures.
-- [workflows](http://_vscodecontentref_/5): Contains scripts for different workflows.
+- **finger_counting**: Contains the script for counting fingers and detecting gestures.
+- **logs**: Contains logs for errors and user performance.
+- **pptx**: Contains PowerPoint files used in the workflows.
+- **scraps**: Contains old and experimental scripts.
+- **specific_gestures**: Contains scripts and data for specific gestures.
+- **workflows**: Contains scripts for different workflows.
