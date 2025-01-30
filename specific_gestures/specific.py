@@ -99,7 +99,7 @@ def main():
 
     # Track the last time a gesture was executed
     last_execution_time = 0
-    cooldown_seconds = 2  # Minimum time between gestures
+    cooldown_seconds = 3  # Minimum time between gestures
 
     with mp_hands.Hands(
         model_complexity=1,

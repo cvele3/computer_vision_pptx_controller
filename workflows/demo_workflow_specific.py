@@ -1,8 +1,8 @@
 import time
-import csv
 import cv2
 import mediapipe as mp
 import pyautogui
+import csv
 
 # Initialize MediaPipe Hands
 mp_hands = mp.solutions.hands
@@ -11,12 +11,11 @@ mp_drawing = mp.solutions.drawing_utils
 # Define predefined workflows
 WORKFLOWS = [
     ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PREVIOUS_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PRESENTATION_MODE_OFF"],
-    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PREVIOUS_SLIDE", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE" ,"PRESENTATION_MODE_OFF"],
-    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PREVIOUS_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PRESENTATION_MODE_OFF"]
+    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PREVIOUS_SLIDE", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "PRESENTATION_MODE_OFF"],
+    ["PRESENTATION_MODE_ON", "NEXT_SLIDE", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PLAY_VIDEO", "STOP_VIDEO", "NEXT_SLIDE", "PREVIOUS_SLIDE", "NEXT_SLIDE", "NEXT_SLIDE", "QUESTION_BLOCK", "QUESTION_BLOCK", "NEXT_SLIDE", "PRESENTATION_MODE_OFF"]
 ]
 
-# Initialize error log
-ERROR_LOG_FILE = "error_log.csv"
+ERROR_LOG_FILE = "logs/error_log.csv"
 
 def detect_gesture(hand_landmarks):
     """
@@ -95,15 +94,7 @@ def execute_action(action):
         print("Previous Slide")
         pyautogui.press("left")
 
-def log_error(step, expected, detected, error_type):
-    """
-    Log errors into a CSV file with error type.
-    """
-    with open(ERROR_LOG_FILE, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([time.strftime("%Y-%m-%d %H:%M:%S"), step, detected, expected, error_type])
-
-def process_workflow(workflow):
+def process_workflow(workflow, flow_number):
     """
     Process a single workflow, track time, and log errors.
     """
@@ -114,6 +105,7 @@ def process_workflow(workflow):
     last_execution_time = 0
     cooldown_seconds = 2  # Cooldown between gesture detections
     workflow_started = False  # Flag to indicate workflow start
+    error_count = 0
 
     with mp_hands.Hands(
         model_complexity=1,
@@ -159,11 +151,9 @@ def process_workflow(workflow):
                     if gesture == workflow[step_index]:
                         execute_action(gesture)
                         step_index += 1
-                    else:
-                        error_type = "Misclassification" if gesture != "UNKNOWN" else "False Negative"
-                        if gesture != "UNKNOWN":
-                            log_error(step_index + 1, workflow[step_index], gesture, error_type)
-                        
+                    elif gesture != "UNKNOWN":
+                        error_count += 1
+                        log_error(step_index + 1, workflow[step_index], gesture, flow_number)
 
                     last_execution_time = current_time  # Update last execution time
 
@@ -181,28 +171,15 @@ def process_workflow(workflow):
     if start_time:
         elapsed_time = time.time() - start_time
         print(f"Workflow completed in {elapsed_time:.2f} seconds.")
+        return elapsed_time, error_count
     else:
         print("Workflow was not started.")
-
-
-def main():
+        return 0, error_count
+    
+def log_error(step, expected, detected, flow_number):
     """
-    Main function to select and execute a workflow.
+    Log errors into a CSV file with error type.
     """
-    print("Select a workflow:")
-    for i, workflow in enumerate(WORKFLOWS):
-        print(f"{i + 1}: {' -> '.join(workflow)}")
-
-    choice = int(input("Enter the number of the workflow: ")) - 1
-    if 0 <= choice < len(WORKFLOWS):
-        process_workflow(WORKFLOWS[choice])
-    else:
-        print("Invalid choice.")
-
-if __name__ == "__main__":
-    # Initialize error log
-    with open(ERROR_LOG_FILE, mode='w', newline='') as file:
+    with open(ERROR_LOG_FILE, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Timestamp", "Step", "Detected Gesture", "Expected Gesture", "Error Type"])
-
-    main()
+        writer.writerow([time.strftime("%Y-%m-%d %H:%M:%S"), "Specific", flow_number, step, detected, expected])
